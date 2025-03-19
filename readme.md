@@ -75,35 +75,50 @@ alarm-system/
 │── alarm-service/          # Manages alarms & states
 │   ├── handlers/           # REST API handlers
 │   │   ├── handler.go
+│   │   ├── handler_test.go
 │   │   ├── routes.go
 │   ├── storage/            # Storage logic & interface
 │   │   ├── memory.go       # In-memory implementation
+│   │   ├── memory_test.go 
 │   │   ├── iface.go        # Defines the storage interface
 │   ├── service/            # Business logic (Alarm processing)
 |   │   ├── service.go
-│   ├── events/             # Publishes events (alarm triggered)
-│   │   ├── events.go
-│   │   ├── publisher.go            
+│   │   ├── service_test.go
+│   │   ├── iface.go        # Defines the service interface
+│   ├── .env.alarm-service          
 │   ├── main.go             # Entry point
 │
 │── notification-service/   # Handles notifications
 │   ├── handlers/           # REST API handlers
-│   ├── service/            # Notification logic (Webhook, Email, etc.)
-│   ├── events/             # Listens to alarm events
+│   │   ├── handler.go
+│   │   ├── handler_test.go
+│   │   ├── routes.go
+│   ├── service/            # Notification logic (Webhook, log, etc.)
+|   │   ├── service.go
+│   │   ├── service_test.go
+│   │   ├── iface.go        # Defines the service interface
 │   │── notifiers/
-│   ├── iface.go            # Defines the Notifier interface
-│   ├── log.go              # Implements a logger notifier
-│   ├── webhook.go          # Implements a webhook notifier
-│   ├── createNotifier.go   # Factory function to create notifiers
+│   │   ├── iface.go        # Defines the Notifier interface
+│   │   ├── createNotifier.go # Factory function to create notifiers
+│   │   ├── log.go          # Implements a logger notifier
+│   │   ├── webhook.go      # Implements a webhook notifier
+│   ├── .env.notification-service
 │   ├── main.go             # Entry point
 │
 │── ack-service/            # Handles acknowledgments
 │   ├── handlers/           # REST API handlers
-│   ├── service/            # ACK logic (notification throttling)
+│   │   ├── handler.go
+│   │   ├── handler_test.go
+│   │   ├── routes.go
+│   ├── service/            # ACK logic
+|   │   ├── service.go
+│   │   ├── service_test.go
+│   │   ├── iface.go        # Defines the service interface
 │   ├── storage/            # Storage for ACK states
 │   │   ├── memory.go       # In-memory implementation
-│   │   ├── storage.go      # Defines the storage interface
-│   ├── events/             # Listens to alarm events
+│   │   ├── memory_test.go 
+│   │   ├── iface.go        # Defines the storage interface
+│   ├── .env.ack-service 
 │   ├── main.go             # Entry point
 │
 │── middleware/             
@@ -240,10 +255,7 @@ curl --location --request POST 'http://localhost:8082/ack/e70a2066-7bec-4999-a68
 #### ➔ Response:
 ```json
 {
-    "acked_at": "2025-03-18T22:12:25.256537+05:30",
-    "alarm_id": "e70a2066-7bec-4999-a688-62da73b6187f",
-    "next_notification_at": "2025-03-19T22:12:25.256537+05:30",
-    "should_notify": true
+    "message": "alarm successfully acknowledged"
 }
 ```
 
@@ -290,9 +302,24 @@ curl --location 'http://localhost:8081/notify/register-notifier' \
 #### ➔ Send an alarm notification
 This API allows user to send an alarm notication using the registered notification method
 ```bash
-
+curl --location 'http://localhost:8081/notify/' \
+--header 'Content-Type: application/json' \
+--data '{
+    "alarm_id": "554e76e4-fc22-4eea-b6c6-616e5d4c8caf",
+    "name": "morning-alarm",
+    "type": "active",
+    "timestamp": "2025-03-19T11:07:00+05:30"
+    }'
 ```
 #### ➔ Response:
 ```json
+{
+    "message": "Notification received successfully"
+}
+```
 
+### 🔹 **Unit Tests**
+Run tests using:
+```bash
+go test ./... -v
 ```
